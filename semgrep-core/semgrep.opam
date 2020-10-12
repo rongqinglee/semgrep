@@ -27,6 +27,8 @@ depends: [
   "re"
   "dune-glob"
   "parmap"
+  "ANSITerminal"
+  "cmdliner"
 ]
 
 build: [make]

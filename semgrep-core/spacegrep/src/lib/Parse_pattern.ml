@@ -97,7 +97,7 @@ let rec parse_line pending_braces acc (tokens : Lexer.token list)
       (match pending_braces with
        | Curly :: pending_braces ->
            Some (close_acc acc, pending_braces, close_loc, tokens)
-       | (Paren | Bracket) :: pending_braces ->
+       | (Paren | Bracket) :: _ ->
            None
        | [] ->
            parse_line pending_braces

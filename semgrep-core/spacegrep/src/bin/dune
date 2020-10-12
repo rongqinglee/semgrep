@@ -1,4 +1,5 @@
 (executables
+  (package spacegrep)
   (public_names spacegrep spacecat)
   (names Spacegrep_main Spacecat_main)
   (libraries

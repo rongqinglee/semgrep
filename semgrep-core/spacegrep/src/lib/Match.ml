@@ -224,15 +224,6 @@ let starts_after last_loc loc =
   let pos, _ = loc in
   Loc.Pos.compare last_pos pos < 0
 
-let rec get_start_loc (doc : Doc_AST.node list) =
-  match doc with
-  | [] -> None
-  | Atom (loc, _) :: _ -> Some loc
-  | List doc1 :: doc2 ->
-      match get_start_loc doc1 with
-      | None -> get_start_loc doc2
-      | res -> res
-
 let rec fold acc (doc : Doc_AST.node list) f =
   match doc with
   | [] -> acc
