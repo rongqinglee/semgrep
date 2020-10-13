@@ -142,7 +142,7 @@ let gen_facts file outdir =
   let ast = Parse_generic.parse_program file in
   Naming_AST.resolve lang ast;
   (* less: use treesitter also later
-   *  Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file in
+   *  Parse_program.parse_and_resolve_name_use_pfff_or_treesitter lang file in
    *)
 
   let facts = ref [] in

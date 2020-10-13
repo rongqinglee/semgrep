@@ -81,7 +81,7 @@ let test_parse_lang lang get_final_files xs =
        if true
        then begin
           (* use tree-sitter parser and converters *)
-          Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file
+          Parse_program.parse_and_resolve_name_use_pfff_or_treesitter lang file
           |> ignore
        end else begin
           (* just the tree-sitter CST parsing  *)
@@ -115,7 +115,7 @@ let diff_pfff_tree_sitter xs =
     let ast1 = Parse_generic.parse_with_lang lang file in
     let ast2 =
         Common.save_excursion Flag_semgrep.tree_sitter_only true (fun () ->
-            Parse_code.just_parse_with_lang lang file
+            Parse_program.just_parse_with_lang lang file
         ) in
     let s1 = AST_generic.show_program ast1 in
     let s2 = AST_generic.show_program ast2 in

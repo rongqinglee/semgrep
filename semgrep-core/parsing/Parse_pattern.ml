@@ -15,11 +15,13 @@
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
-(* Mostly a wrapper around pfff Parse_generic.
+(* Expose all the pattern parsers as one.
  *)
 
 (*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
-let parse_pattern lang string =
-  Check_semgrep.parse_check_pattern lang string
+let parse lang string =
+  match lang with
+  | Lang.Spacegrep -> Pattern.Spacegrep (Parse_spacegrep.parse_program file)
+  | lang -> Pattern.Semgrep (Check_semgrep.parse_check_pattern lang string)

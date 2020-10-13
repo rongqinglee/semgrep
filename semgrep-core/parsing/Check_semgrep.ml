@@ -12,6 +12,7 @@ let lang_has_no_dollar_ids = Lang.(function
   | Csharp
   -> true
   | Javascript | Ruby | Typescript | PHP
+  | Spacegrep
   -> false)
 (*e: constant [[Check_semgrep.lang_has_no_dollar_ids]] *)
 
@@ -35,7 +36,18 @@ let check_pattern lang ast =
 
 (*s: function [[Check_semgrep.parse_check_pattern]] *)
 let parse_check_pattern lang str =
-  Parse_generic.parse_pattern lang str
-  |> check_pattern lang
+  match lang with
+  | Lang.Spacegrep ->
+      let pat =
+        Spacegrep.Src_file.of_string str
+        |> Spacegrep.Parse_pattern.of_src
+      in
+      Pattern.Spacegrep pat
+  | lang ->
+      let pat =
+        Parse_generic.parse_pattern lang str
+        |> check_pattern lang
+      in
+      Pattern.Semgrep pat
 (*e: function [[Check_semgrep.parse_check_pattern]] *)
 (*e: semgrep/parsing/Check_semgrep.ml *)

@@ -186,12 +186,23 @@ let unittest =
     tests |> List.iter (fun (filename, range, sols) ->
         let file = test_path ^ filename in
         let pats = Synthesizer.synthesize_patterns range file in
-        let code = Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file in
+        let code =
+          Parse_program.parse_and_resolve_name_use_pfff_or_treesitter
+            lang file in
+        let code =
+          match code with
+          | Program.Semgrep x -> x
+          | Program.Spacegrep _ -> failwith "not supported for spacegrep"
+        in
         let r = Range.range_of_linecol_spec range file in
-        Naming_AST.resolve lang code;
+        Naming_AST.resolve lang code; (* wasn't it done already? *)
         let check_pats (str, pat) =
           try
-            let pattern = Parse_generic.parse_pattern lang pat in
+            let pattern =
+              match Parse_pattern.parse lang pat with
+              | Pattern.Semgrep x -> x
+              | Pattern.Spacegrep _ -> failwith "not supported for spacegrep"
+            in
             let e_opt = Range_to_AST.any_at_range r code in
                match e_opt with
                  | Some any ->

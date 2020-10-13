@@ -67,7 +67,9 @@ let print_bool env = function
          | Lang.Java | Lang.Go | Lang.C | Lang.JSON | Lang.Javascript
          | Lang.OCaml | Lang.Ruby | Lang.Typescript
          | Lang.Csharp | Lang.PHP
-          -> "true")
+          -> "true"
+         | Lang.Spacegrep
+          -> assert false)
   | false ->
      (match env.lang with
          | Lang.Python | Lang.Python2 | Lang.Python3
@@ -75,7 +77,9 @@ let print_bool env = function
          | Lang.Java | Lang.Go | Lang.C | Lang.JSON | Lang.Javascript
          | Lang.OCaml | Lang.Ruby | Lang.Typescript
          | Lang.Csharp | Lang.PHP
-          -> "false")
+          -> "false"
+         | Lang.Spacegrep
+          -> assert false)
 
 let arithop env (op, tok) =
   match op with
@@ -169,6 +173,7 @@ and if_stmt env level (tok, e, s, sopt) =
     | Lang.Ruby -> failwith "I don't want to deal with Ruby right now"
     | Lang.OCaml -> failwith "Impossible; if statements should be expressions"
     | Lang.PHP -> failwith "I don't want to deal with PHP right now"
+    | Lang.Spacegrep -> assert false
     )
   in
   let e_str = format_cond tok (expr env e) in
@@ -198,6 +203,7 @@ and while_stmt env level (tok, e, s) =
       | Lang.Ruby -> ruby_while
       | Lang.OCaml -> ocaml_while
       | Lang.PHP -> failwith "TODO: PHP"
+      | Lang.Spacegrep -> assert false
       )
    in
       while_format (token "while" tok) (expr env e) (stmt env (level + 1) s)
@@ -212,6 +218,7 @@ and do_while stmt env level (s, e) =
     | Lang.Go | Lang.JSON | Lang.OCaml -> failwith "impossible; no do while"
     | Lang.Ruby -> failwith "ruby is so weird (here, do while loop)"
     | Lang.PHP -> failwith "TODO: PHP"
+    | Lang.Spacegrep -> assert false
     )
    in
       do_while_format (stmt env (level + 1) s) (expr env e)
@@ -226,6 +233,7 @@ and for_stmt env level (for_tok, hdr, s) =
     | Lang.Ruby -> F.sprintf "%s %s\ndo %s\nend"
     | Lang.JSON | Lang.OCaml -> failwith "JSON/OCaml has for loops????"
     | Lang.PHP -> failwith "TODO: PHP"
+    | Lang.Spacegrep -> assert false
     )
    in
    let show_init = function
@@ -266,6 +274,7 @@ and def_stmt env (entity, def_kind) =
                       (fun _typ id e -> F.sprintf "%s = %s" id e)
        | Lang.JSON | Lang.OCaml -> failwith "I think JSON/OCaml have no variable definitions"
        | Lang.PHP -> failwith "TODO: PHP"
+       | Lang.Spacegrep -> assert false
       )
     in
     let (typ, id) =
@@ -296,6 +305,7 @@ and return env (tok, eopt) =
   | Lang.JSON | Lang.Javascript | Lang.Typescript
       -> F.sprintf "%s %s" (token "return" tok) to_return
   | Lang.PHP -> failwith "TODO: PHP"
+  | Lang.Spacegrep -> assert false
 
 and break env (tok, lbl) =
   let lbl_str =
@@ -313,6 +323,7 @@ and break env (tok, lbl) =
   | Lang.JSON | Lang.Javascript | Lang.Typescript
     -> F.sprintf "%s%s" (token "break" tok) lbl_str
   | Lang.PHP -> failwith "TODO: PHP"
+  | Lang.Spacegrep -> assert false
 
 and continue env (tok, lbl) =
   let lbl_str =
@@ -330,6 +341,7 @@ and continue env (tok, lbl) =
   | Lang.JSON | Lang.Javascript | Lang.Typescript
     -> F.sprintf "%s%s" (token "continue" tok) lbl_str
   | Lang.PHP -> failwith "TODO: PHP"
+  | Lang.Spacegrep -> assert false
 
 (* expressions *)
 
@@ -401,6 +413,7 @@ and literal env = function
       | Lang.OCaml | Lang.Ruby | Lang.Typescript ->
             "\"" ^ s ^ "\""
       | Lang.PHP -> failwith "TODO: PHP"
+      | Lang.Spacegrep -> assert false
       )
   | Regexp ((s,_)) -> s
   | x -> todo (E (L x))

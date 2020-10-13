@@ -18,7 +18,9 @@
 
 (*s: type [[Pattern.t]] *)
 (* right now only Expr, Stmt, and Stmts are supported *)
-type t = AST_generic.any
+type t =
+  | Semgrep of Lang.t list * AST_generic.any
+  | Spacegrep of Spacegrep.Pattern_AST.t
 (*e: type [[Pattern.t]] *)
 
 (*e: semgrep/core/Pattern.ml *)

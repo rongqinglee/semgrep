@@ -66,11 +66,12 @@ let regression_tests_for_lang files lang =
         then candidate2
         else failwith (spf "could not find sgrep file for %s" file)
     in
-    let ast = 
-        try 
-          Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file 
+    let ast =
+        try
+          Parse_program.parse_and_resolve_name_use_pfff_or_treesitter
+            lang file
         with exn ->
-          failwith (spf "fail to parse %s (exn = %s)" file 
+          failwith (spf "fail to parse %s (exn = %s)" file
                     (Common.exn_to_s exn))
     in
     let pattern = 

@@ -27,7 +27,7 @@ let logger = Logging.get_logger [__MODULE__]
 (* Helpers *)
 (*****************************************************************************)
 
-type parser_kind = Pfff | TreeSitter
+type parser_kind = Pfff | TreeSitter | Spacegrep
  [@@deriving show { with_path = false }]
 
 type 'ast parser = parser_kind * (Common.filename -> 'ast)
@@ -96,7 +96,7 @@ let just_parse_with_lang lang file =
           Pfff, Parse_ruby.parse_program
         ]
       in
-      Ruby_to_generic.program ast
+      Program.Semgrep (Ruby_to_generic.program ast)
   | Lang.Java ->
       let ast =
         (* let's start with a pfff one; it's quite good and currently faster
@@ -108,7 +108,7 @@ let just_parse_with_lang lang file =
           TreeSitter, Parse_java_tree_sitter.parse;
           ]
        in
-       Java_to_generic.program ast
+       Program.Semgrep (Java_to_generic.program ast)
   | Lang.Go ->
       let ast =
         run file [
@@ -116,7 +116,7 @@ let just_parse_with_lang lang file =
         TreeSitter, Parse_go_tree_sitter.parse;
         ]
       in
-      Go_to_generic.program ast
+      Program.Semgrep (Go_to_generic.program ast)
 
   | Lang.Javascript ->
       (* we start directly with tree-sitter here, because
@@ -146,7 +146,7 @@ let just_parse_with_lang lang file =
             );
           ]
       in
-      Js_to_generic.program ast
+      Program.Semgrep (Js_to_generic.program ast)
 
   | Lang.Typescript ->
       let ast =
@@ -154,18 +154,21 @@ let just_parse_with_lang lang file =
           TreeSitter, Parse_typescript_tree_sitter.parse ?dialect:None
         ]
       in
-      Js_to_generic.program ast
+      Program.Semgrep (Js_to_generic.program ast)
 
   | Lang.Csharp ->
       (* there is no pfff parser for C# so let's go directly to tree-sitter,
        * and there's no ast_csharp.ml either so we directly generate
        * a generic AST (no csharp_to_generic here)
        *)
-      run file [TreeSitter, Parse_csharp_tree_sitter.parse]
+      Program.Semgrep (run file [TreeSitter, Parse_csharp_tree_sitter.parse])
+
+  | Lang.Spacegrep ->
+      Program.Spacegrep (run file [Spacegrep, Parse_spacegrep.parse_program])
 
   (* default to the one in pfff for the other languages *)
   | _ ->
-      run file [Pfff, (Parse_generic.parse_with_lang lang)]
+      Program.Semgrep (run file [Pfff, (Parse_generic.parse_with_lang lang)])
 
 (*****************************************************************************)
 (* Entry point *)
@@ -174,11 +177,16 @@ let just_parse_with_lang lang file =
 let parse_and_resolve_name_use_pfff_or_treesitter lang file =
   let ast = just_parse_with_lang lang file in
 
-  (* to be deterministic, reset the gensym; anyway right now semgrep is
-   * used only for local per-file analysis, so no need to have a unique ID
-   * among a set of files in a project like codegraph.
-   *)
-  AST_generic.gensym_counter := 0;
-  Naming_AST.resolve lang ast;
-  Constant_propagation.propagate lang ast;
+  (match ast with
+   | Program.Semgrep ast ->
+       (* to be deterministic, reset the gensym; anyway right now semgrep is
+        * used only for local per-file analysis, so no need to have a unique ID
+        * among a set of files in a project like codegraph.
+       *)
+       AST_generic.gensym_counter := 0;
+       Naming_AST.resolve lang ast;
+       Constant_propagation.propagate lang ast
+
+   | Program.Spacegrep _ -> ()
+  );
   ast

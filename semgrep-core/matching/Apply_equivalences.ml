@@ -71,15 +71,15 @@ let apply equivs any =
 
   equivs |> List.iter (fun {Eq. left; op; right; _ } ->
     match left, op, right with
-    | E l, Eq.Equiv, E r ->
+    | Semgrep (E l), Eq.Equiv, Semgrep (E r) ->
           Common.push (l, r) expr_rules;
           Common.push (r, l) expr_rules;
-    | E l, Eq.Imply, E r ->
+    | Semgrep (E l), Eq.Imply, Semgrep (E r) ->
           Common.push (l, r) expr_rules;
-    | S l, Eq.Equiv, S r ->
+    | Semgrep (S l), Eq.Equiv, Semgrep (S r) ->
           Common.push (l, r) stmt_rules;
           Common.push (r, l) stmt_rules;
-    | S l, Eq.Imply, S r ->
+    | Semgrep (S l), Eq.Imply, Semgrep (S r) ->
           Common.push (l, r) stmt_rules;
     | _ -> failwith "only expr and stmt equivalence patterns are supported"
   );
@@ -120,7 +120,9 @@ let apply equivs any =
       x
     );
    } in
-  visitor.M.vany any
+  match any with
+  | Pattern.Semgrep any -> Pattern.Semgrep (visitor.M.vany any)
+  | Pattern.Spacegrep _ as x -> x
 [@@profiling]
 (*e: function [[Apply_equivalences.apply]] *)
 

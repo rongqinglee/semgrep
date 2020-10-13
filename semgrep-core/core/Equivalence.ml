@@ -58,7 +58,7 @@
 
 (*s: type [[Equivalence.pattern]] *)
 (* right now only Expr is supported *)
-type pattern = Pattern.t
+type pattern = AST_generic.any
 (*e: type [[Equivalence.pattern]] *)
 
 (*s: type [[Equivalence.equivalence_kind]] *)

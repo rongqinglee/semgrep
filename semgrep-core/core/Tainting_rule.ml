@@ -72,7 +72,7 @@ let rule_of_tainting_rule tr =
     severity = tr.severity;
     languages = tr.languages;
     (* arbitrary *)
-    pattern = List.hd (tr.sink)
+    pattern = Pattern.Semgrep (List.hd (tr.sink))
   }
 (*e: function [[Tainting_rule.rule_of_tainting_rule]] *)
 (*e: semgrep/core/Tainting_rule.ml *)

@@ -12,6 +12,8 @@
    tree-sitter-lang.typescript
    tree-sitter-lang.tsx
 
+   spacegrep
+
    commons commons_core
    pfff-config
    pfff-h_program-lang

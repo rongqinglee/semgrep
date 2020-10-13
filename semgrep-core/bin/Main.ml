@@ -422,7 +422,7 @@ let parse_generic lang file =
  (fun () ->
  try
   (* finally calling the actual function *)
-  let ast = Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file
+  let ast = Parse_program.parse_and_resolve_name_use_pfff_or_treesitter lang file
   in
   (*s: [[Main_semgrep_core.parse_generic()]] resolve names in the AST *)
   (*e: [[Main_semgrep_core.parse_generic()]] resolve names in the AST *)
@@ -476,12 +476,19 @@ type ast =
   (*s: [[Main_semgrep_core.ast]] other cases *)
   | Fuzzy of Ast_fuzzy.trees
   (*e: [[Main_semgrep_core.ast]] other cases *)
+  | Spacegrep of Spacegrep.Doc_AST.t
   | NoAST
 (*e: type [[Main_semgrep_core.ast]] *)
 
 (*s: function [[Main_semgrep_core.create_ast]] *)
 let create_ast file =
   match Lang.lang_of_string_opt !lang with
+  | Some Spacegrep ->
+      let ast =
+        Spacegrep.Src_file.of_file file
+        |> Spacegrep.Parse_doc.of_src
+      in
+      Spacegrep ast
   | Some lang -> Gen (parse_generic lang file, lang)
   (*s: [[Main_semgrep_core.create_ast()]] when not a supported language *)
   | None ->
@@ -499,6 +506,7 @@ type pattern =
   (*s: [[Main_semgrep_core.pattern]] other cases *)
   | PatFuzzy of Ast_fuzzy.tree list
   (*e: [[Main_semgrep_core.pattern]] other cases *)
+  | PatSpacegrep of Spacegrep.Pattern_AST.t
 (*e: type [[Main_semgrep_core.pattern]] *)
 
 (*s: function [[Main_semgrep_core.parse_pattern]] *)
@@ -506,6 +514,12 @@ let parse_pattern str =
  try (
   Common.save_excursion Flag_parsing.sgrep_mode true (fun () ->
    match Lang.lang_of_string_opt !lang with
+   | Some Generic ->
+       let pat =
+         Spacegrep.Src_file.of_string str
+         |> Spacegrep.Parse_pattern.of_src
+       in
+       PatSpacegrep pat
    | Some lang -> PatGen (Parse_pattern.parse_pattern lang str)
    (*s: [[Main_semgrep_core.parse_pattern()]] when not a supported language *)
    | None ->
@@ -524,6 +538,8 @@ let parse_pattern str =
 let sgrep_ast pattern file any_ast =
   match pattern, any_ast with
   |  _, NoAST -> () (* skipping *)
+  | PatSpacegrep pat, Spacegrep ast ->
+      failwith "not implemented: sgrep_ast with spacegrep"
   | PatGen pattern, Gen (ast, lang) ->
     let rule = { R.
       id = "-e/-f"; pattern; message = ""; severity = R.Error;
@@ -867,7 +883,8 @@ let dump_pattern (file: Common.filename) =
 let dump_ast file =
   match Lang.langs_of_filename file with
   | lang::_ ->
-    let x = Parse_code.parse_and_resolve_name_use_pfff_or_treesitter lang file in
+    let x =
+      Parse_program.parse_and_resolve_name_use_pfff_or_treesitter lang file in
     let v = Meta_AST.vof_any (AST_generic.Pr x) in
     let s = dump_v_to_format v in
     pr s
@@ -960,7 +977,7 @@ let options () =
     "-f", Arg.Set_string pattern_file,
     " <file> obtain pattern from file (need -lang)";
     "-rules_file", Arg.Set_string rules_file,
-    " <file> obtain list of patterns from YAML file";
+    " <file> obtain list of patterns from yaml file, output json";
 
     "-lang", Arg.Set_string lang,
     (spf " <str> choose language (valid choices: %s)" supported_langs);
@@ -990,7 +1007,7 @@ let options () =
     " print matches on one line, in normalized form";
     (*x: [[Main_semgrep_core.options]] report match mode cases *)
     "-json", Arg.Set output_format_json,
-    " output JSON format";
+    " make the -dump_* options output json";
     (*e: [[Main_semgrep_core.options]] report match mode cases *)
     (*s: [[Main_semgrep_core.options]] other cases *)
     "-pvar", Arg.String (fun s -> mvars := Common.split "," s),

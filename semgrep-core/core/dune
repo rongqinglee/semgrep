@@ -3,6 +3,7 @@
  (wrapped false)
  (libraries
    yaml
+   spacegrep
    commons
    pfff-config
    pfff-h_program-lang

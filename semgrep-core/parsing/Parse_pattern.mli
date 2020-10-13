@@ -1,2 +1,6 @@
+(*
+   Expose all the pattern parsers as one.
+*)
 
-val parse_pattern: Lang.t -> string -> Pattern.t
+(* Parse a string representing a pattern for a given language. *)
+val parse: Lang.t -> string -> Pattern.t
